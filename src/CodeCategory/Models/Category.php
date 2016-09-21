@@ -4,7 +4,7 @@ namespace CodePress\CodeCategory\Models;
 use Illuminate\Database\Eloquent\Model;
 use Cviebrock\EloquentSluggable\SluggableInterface;
 use Cviebrock\EloquentSluggable\SluggableTrait;
-
+use Illuminate\Validation\Validator;
 
 class Category extends Model implements SluggableInterface
 
@@ -38,12 +38,27 @@ class Category extends Model implements SluggableInterface
         return $this->morphTo();
     }
 
-   public function setValidator($validator){
+   public function setValidator(Validator $validator){
        $this->validator = $validator;
    }
 
    public function getValidator(){
        return $this->validator;
+   }
+   
+   public function isValid(){
+       $validator = $this->validator;
+       $validator->setRules(['name' => 'required|max:255']);
+       $validator->setData(
+               $this->getAttributes() // Método do eloquent que retorna os atributos da instância atual
+               );//Se não receber um atributo name o teste irá falhar
+       
+       if($validator->fails()){
+           $this->errors = $validator->errors();
+           return false;
+       }
+       
+       return true;
    }
 
 }
